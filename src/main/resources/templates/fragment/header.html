@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/layout.html}">
+
+<!-- header 영역 -->
+<div th:fragment="header">
+    <div th:if="${#authentication}" th:with="currentUser=${#authentication.principal}">
+    <!-- Navigation-->
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" th:href="@{/}">KITTOP
+<!--                    <img th:src="@{/images/} + '로고2.png'" alt="KITTOP" style="height: 50px; width: auto;">-->
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                        <!-- sec:authorize="isAnonymous()"
+                         로그인하지 않은 상태이면 로그인 메뉴를 보여주도록 설정-->
+                        <li class="nav-item" sec:authorize="isAnonymous()">
+                            <a class="nav-link active" aria-current="page" th:href="@{/kittop/login}">로그인</a>
+                        </li>
+                        <!-- sec:authorize="isAuthenticated()"
+                         로그인한 상태이면 마이페이지 메뉴를 보여주도록 설정-->
+                        <li class="nav-item" sec:authorize="isAuthenticated()">
+                            <a class="nav-link active" aria-current="page" th:href="@{/kittop/user/info(userId=${currentUser.userId})}">My Page</a>
+                        </li>
+                        <!-- sec:authorize="isAuthenticated()"
+                         로그인한 상태이면 로그아웃 메뉴를 보여주도록 설정-->
+                        <li class="nav-item" sec:authorize="isAuthenticated()">
+                            <a class="nav-link active" aria-current="page" th:href="@{/kittop/logout}">로그아웃</a>
+                        </li>
+                        <!-- sec:authorize="isAnonymous()"
+                         로그인하지 않은 상태이면 회원가입 메뉴를 보여주도록 설정-->
+                        <li class="nav-item" sec:authorize="isAnonymous()">
+                            <a class="nav-link active" aria-current="page" th:href="@{/kittop/register}">회원가입</a>
+                        </li>
+                        <!-- sec:authorize="hasAnyAuthority('ADMIN')"
+                         관리자계정(ADMIN ROLE)으로 로그인한 경우 보이도록 설정-->
+                        <li class="nav-item" sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                            <a class="nav-link active" th:href="@{/kittop/admin}">관리페이지</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Q&A</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Review</a>
+                        </li>
+                    </ul>
+                    <!-- 회원일 경우에만 카트 보임 -->
+                    <div sec:authorize="isAuthenticated()">
+                        <a class="btn btn-outline-dark" th:href="@{/kittop/cart/list}" role="button">
+                            <i class="bi-cart-fill me-1"></i>
+                            Cart
+                            <span class="badge bg-dark text-white ms-1 rounded-pill cartCount" th:if="${session.cartCount != null}" th:text="${session.cartCount}"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+    </div>
+</div>
+
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="row mt-3">
+    <form action="/kittop/board/ex_list" method="get">
+      <div class="col">
+        <input type="hidden" name="size" th:value="${pageRequestDTO.size}">
+
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <select id="searchType" class="form-select" name="types">
+
+              <option value="t" th:selected="${pageRequestDTO.types == 't'}">제목</option>
+              <option value="c" th:selected="${pageRequestDTO.types == 'c'}">내용</option>
+              <option value="w" th:selected="${pageRequestDTO.types == 'w'}">작성자</option>
+              <option value="tc" th:selected="${pageRequestDTO.types == 'tc'}">제목+내용</option>
+              <option value="tcw" th:selected="${pageRequestDTO.types == 'tcw'}">제목+내용+작성자</option>
+            </select>
+          </div>
+          <input type="text" class="form-control" name="keyword" th:value="${pageRequestDTO.keyword}">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary searchBtn" type="submit">검색</button>
+            <button class="btn btn-outline-secondary clearBtn" type="button">초기화</button>
+
+
+          </div>
+        </div>
+      </div>
+    </form>
+    <div class="col">
+
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">교환신청게시판</h5>
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">게시판번호</th>
+          <th scope="col">제목</th>
+          <th scope="col">작성자메일</th>
+          <th scope="col">등록일자</th>
+        </tr>
+        </thead>
+
+        <tbody th:with="link = ${pageRequestDTO.getLink()}">
+        <tr th:each="dto:${responseDTO.dtoList}">
+          <th scope="col">[[${dto.boardId}]]</th>
+          <td><a th:href="|@{/kittop/board/info(boardId =${dto.boardId})}&${link}|">
+            [[${dto.title}]]</a></td>
+          <td>[[${dto.userEmail}]]</td>
+          <td>[[${#temporals.format(dto.regDate,'yyyy-MM-dd')}]]</td>
+        </tr>
+        </tbody>
+      </table>
+      <!--페이지 버튼-->
+      <div class="float-end">
+        <ul class="pagination flex-wrap">
+          <div th:if="${responseDTO.total > 0}">
+            <li class="page-item" th:if="${responseDTO.prev}">
+              <a class="page-link" th:data-num="${responseDTO.start - 1}">Previous</a>
+            </li>
+          </div>
+          <!--#numbers.sequence : 특정한 범위의 연속된 숫자를 만듦-->
+          <th:block th:each="i: ${#numbers.sequence(responseDTO.start , responseDTO.end)}">
+            <li th:if="${i != 0}" th:class="${responseDTO.page == i} ? 'page-item' : 'page-item'">
+              <a class="page-link"
+                 th:style="${responseDTO.page == i} ? 'background-color: darkgrey; color: white;' : 'color: black'"
+                 th:data-num="${i}">[[${i}]]</a>
+              <!--data-num이라는 속성으로 페이지 처리-->
+            </li>
+          </th:block>
+          <li class="page-item" th:if="${responseDTO.next}">
+            <a class="page-link" th:data-num="${responseDTO.end + 1}">Next</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!--modal-->
+<!--	<div class="modal" tabindex="-1">-->
+<!--		<div class="modal-dialog">-->
+<!--			<div class="modal-content">-->
+<!--				<div class="modal-header">-->
+<!--					<h5 class="modal-title">Modal title</h5>-->
+<!--					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
+<!--				</div>-->
+<!--				<div class="modal-body">-->
+<!--					<p>완료</p>-->
+<!--				</div>-->
+<!--				<div class="modal-footer">-->
+<!--					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>-->
+<!--					<button type="button" class="btn btn-primary">Save changes</button>-->
+<!--				</div>-->
+<!--			</div>-->
+<!--		</div>-->
+<!--	</div>-->
+
+
+</div>
+<script layout:fragment="script" th:inline="javascript">
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URL(location.href).searchParams;
+    const el = document.getElementById('searchType');
+    const len = el.options.length;
+
+    // 문의 목록 페이지가 검색 목록을 보여주는 페이지라면 (검색결과 화면이라면)
+    if (urlParams.get('types') !== null) {
+      const str = urlParams.get('types');
+      for (let i = 0; i < len; i++) {
+        if (el.options[i].value == str) {
+          el.options[i].selected = true;
+        }
+      }
+    } else {
+      el.options[0].selected = true;
+    }
+  });
+
+  document.querySelector(".pagination").addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const target = e.target;
+
+    if (target.tagName !== 'A') {
+      return;
+    }
+
+    const num = target.getAttribute("data-num");
+    const formObj = document.querySelector("form");
+
+    formObj.innerHTML += `<input type='hidden' name='page' value='${num}'>`;
+    formObj.submit();
+
+  }, false)
+
+  // 검색
+  /*
+      document.querySelector(".searchBtn").addEventListener("click", function (e) {
+          var searchType = '';
+          var keyword = '';
+
+          document.getElementById('searchType')
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          //self.location = '/silbaram/board/list_qna';
+      }, false)
+  */
+  document.querySelector(".clearBtn").addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    self.location = '/kittop/board/list';
+  }, false)
+
+  document.querySelector(".writeBtn").addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    self.location = '/kittop/board/register';
+  }, false)
+
+  //show modal
+  //redirectAttributes.addFlashAttribute("result", bno);의 result 변수를 이용해서 bno가 전달됨
+  //const result = [[${result}]];
+
+  //const modal = new bootstrap.Modal(document.querySelector(".modal"));
+
+  //if (result) {
+  //	modal.show();
+  //}
+</script>
+</body>
+</html>

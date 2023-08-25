@@ -1,0 +1,15 @@
+@charset "UTF-8";
+
+a { text-decoration: none;
+    color: #626262; }
+li > a { text-decoration: none;
+         color: #626262; }
+* ul li { list-style: none; }
+
+#header { min-height: 80px; }
+
+#categoryWrap #category1
+{ color: #626262; font-weight: bold; }
+#categoryWrap #category2
+{ color: #626262; font-weight: bold; }
+

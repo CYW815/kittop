@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 상세 페이지</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+          crossorigin="anonymous">
+
+
+    <!-- 사용자 css 추가 -->
+    <th:block layout:fragment="css">
+        <style>
+            #content {
+                min-height: auto;
+            }
+
+            .addCart {
+                text-decoration: none;
+                color: #000;
+            }
+
+            .addCart:hover {
+                color: #fff
+            }
+
+            .cartList {
+                text-decoration: none;
+                color: #000;
+            }
+
+            .cartList:hover {
+                color: #fff
+            }
+        </style>
+    </th:block>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
+    <script src="/js/cart.js" defer></script>
+</head>
+
+<div layout:fragment="content" id="content">
+    <div class="container-fluid">
+        <div class="col">
+            <div class="py-5 col-md-12">
+                <div class="container px-4 px-lg-5 my-5">
+                    <div class="row gx-4 gx-lg-5 align-items-center">
+                        <input type="hidden" th:value="${item.itemId}">
+                        <input type="hidden" th:value="${item.category}">
+                        <input type="hidden" th:value="${item.imgName}">
+                        <div class="col-md-6"><img class="card-img-top card-img-top-fit"
+                                                   th:src="|@{/images/}${item.imgName}|" width="80px" height="600px">
+                        </div>
+                        <div class="col-md-5">
+                            <p class="display-6 fw-bolder" th:text="${item.itemName}"></p>
+                            <p class="display-6 fw-bolder" th:text="${item.price + '원'}"></p>
+                            <div class="fs-5 mb-5">
+                                <p th:text="${'재고수량: ' + item.stock + '개'}"></p>
+                                <span>조회수</span>
+                                <input class="form-control text-center me-3" type="num" th:value="${item.hit}"
+                                       style="max-width: 3rem" readonly/>
+                                <!--                        <span>주문수량</span>-->
+                                <!--                        <div class="input-group mb-3">-->
+                                <!--                            <button class="btn btn-outline-secondary" type="button" id="minus-button">-</button>-->
+                                <!--                            <input type="num" class="form-control text-center" id="count-input" th:value="${item.count}" style="max-width: 3rem"/>-->
+                                <!--                            <button class="btn btn-outline-secondary" type="button" id="plus-button">+</button>-->
+                                <!--                        </div>-->
+                            </div>
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    상품 정보
+                                </div>
+                                <div class="card-body">
+                                    <blockquote class="blockquote mb-0">
+                                        <p th:text="${item.content}"></p>
+                                    </blockquote>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <button class="btn btn-outline-dark flex-shrink-0 me-3" type="button">
+                                    <i class="bi-cart-fill me-1"></i>
+                                    <a class="addCart" th:data-itemId="${item.itemId}">장바구니 추가</a>
+                                </button>
+                                <button class="btn btn-outline-dark flex-shrink-0 me-3" type="button">
+                                    <i class="bi-cart-fill me-1"></i>
+                                    <a class="cartList" th:href="@{/kittop/cart/list}">장바구니 이동</a>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="col">
+                    <div class="card-header">
+                        리뷰 목록
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">리뷰 목록</h5>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">리뷰번호</th>
+                            <th scope="col">상품</th>
+                            <th scope="col">상품명</th>
+                            <th scope="col">제목</th>
+                            <th scope="col">작성자메일</th>
+                            <th scope="col">등록일자</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="review:${reviewDTOList}">
+                            <th scope="col">[[${review.reviewId}]]</th>
+                            <th>
+                                <img class="" th:src="|@{/images/}${review.item.imgName}|" width="50px" height="50px">
+                            </th>
+                            <td th:text="${review.item.itemName}" class="px-lg-4"></td>
+                            <td><a th:href="|@{/kittop/review/info(reviewId=${review.reviewId})}&${link}|">
+                                [[${review.title}]]</a></td>
+                            <td>[[${review.userEmail}]]</td>
+                            <td>[[${review.regDate}]]</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <br><br>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script layout:fragment="script" th:inline="javascript">
+
+    // document.getElementById('minus-button').addEventListener('click', function() {
+    //     var countInput = document.getElementById('count-input');
+    //     var currentValue = Number(countInput.value);
+    //     if (currentValue > 0) { //0보다 크면 값보다 -1
+    //         countInput.value = currentValue - 1;
+    //     }
+    // });
+    //
+    // document.getElementById('plus-button').addEventListener('click', function() {
+    //     var countInput = document.getElementById('count-input');
+    //     var currentValue = Number(countInput.value);
+    //     countInput.value = currentValue + 1; //값 1씩 증가
+    // });
+
+    document.querySelectorAll(".addCart").forEach(c => {
+        c.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const target = e.target;
+            if (target.tagName != "A") {
+                return;
+            }
+            const itemId = target.getAttribute("data-itemId");
+            addCart(itemId).then(msg => {
+                alert(msg.msg)
+                document.querySelector(".cartCount").innerText = msg.cartCount;
+            });
+        })
+    })
+
+</script>
+</html>

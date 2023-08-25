@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+  <meta charset="UTF-8">
+  <title>교환환불게시판</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="row mt-3">
+    <div class="col">
+      <div class="card">
+        <form method="post" action="/kittop/board/ex_register">
+          <div class="card-header">
+
+            <select id="category" class="form-select" name="category">
+              <option value="E">교환신청</option>
+              <option value="R">환불신청</option>
+            </select>
+
+          </div>
+          <div class="card-body">
+            <div class="input-group mb-3">
+              <span class="input-group-text">주문번호</span>
+              <input type="hidden" name="orderId" th:value="${orderList.orderId}" class="form-control">
+              <input type="text" name="orderId" th:value="${orderList.orderId}" class="form-control" readonly>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">주문상품</span>
+              <input type="text" name="itemName" th:value="${orderList.item.itemName}" class="form-control" readonly>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">수량</span>
+              <input type="text" name="count" th:value="${orderList.count}" class="form-control" readonly>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">금액</span>
+              <input type="text" name="totalPrice" th:value="${orderList.totalPrice}" class="form-control" readonly>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">제목</span>
+              <input type="text" name="title" class="form-control" placeholder="Title">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">내용</span>
+              <textarea class="form-control com-sm-5" rows="5" name="content"></textarea>
+            </div>
+
+            <div class="my-4">
+              <div class="float-end">
+                <button type="submit" class="btn btn-primary">등록</button>
+                <button type="reset" class="btn btn-secondary">초기화</button>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+  const errors = [[${errors}]]
+
+  let errorMsg = '';
+  if (errors) {
+    for (let i = 0; i < errors.length; i++) {
+      errorMsg += `${errors[i].field}은(는) ${errors[i].code} \n`;
+    }
+    alert(errorMsg);
+  }
+
+  function setOrderInfo(element) {
+    var session = element.getAttribute('data-session');
+    var orderInfo = {
+      orderId: element.getAttribute('data-orderId'),
+      itemName: element.getAttribute('data-itemName'),
+      count: element.getAttribute('data-count'),
+      totalPrice: element.getAttribute('data-totalPrice')
+    };
+
+    // 세션에 주문 정보를 저장합니다.
+    session.orderInfo = orderInfo;
+  }
+
+</script>
+
+</body>
+</html>

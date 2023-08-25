@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>리뷰</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="row mt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    리뷰
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/kittop/review/info}" method="post" id="f1">
+
+                        <input type="hidden" name="reviewId" th:value="${dto.reviewId}">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">제목</span>
+                            <input type="text" class="form-control" th:value="${dto.title}" readonly>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">상품</span>
+                            <img class="" th:src="|@{/images/}${dto.item.imgName}|" width="50px" height="50px">
+                            <input type="text" class="form-control" th:value="${dto.item.itemName}" readonly>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">작성자메일</span>
+                            <input type="text" class="form-control" th:value="${dto.userEmail}" readonly>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">내용</span>
+                            <textarea class="form-control com-sm-5" rows="5" readonly>[[${dto.content}]]</textarea>
+                        </div>
+
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">등록일자</span>
+                            <input type="text" class="form-control"
+                                   th:value="${dto.regDate}" readonly>
+                        </div>
+
+                        <div class="my-4">
+                            <div class="float-end" th:with="link = ${pageRequestDTO.getLink()}">
+                                <a th:href="|@{/kittop/review/list}?${link}|" class="text-decoration-none">
+                                    <button type="button" class="btn btn-primary">목록</button>
+                                </a>
+
+                                <a th:if="${dto.userEmail == loggedInEmail}">
+                                    <button type="button" class="btn btn-danger removeBtn">삭제</button>
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+    const errors = [[${errors}]]
+
+    let errorMsg = ''
+
+    if (errors) {
+        for (let i = 0; i < errors.length; i++) {
+            errorMsg += `${errors[i].field}은(는) ${errors[i].code} \n`;
+        }
+        history.replaceState({}, null, null);
+        alert(errorMsg);
+    }
+
+    const link = [[${pageRequestDTO.getLink()}]];
+    const formObj = document.querySelector("#f1");
+
+
+    document.querySelector(".removeBtn").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // alert("게시글을 삭제하였습니다!");
+        formObj.action = `/kittop/review/delete?${link}`;
+        formObj.method = 'post';
+        formObj.submit();
+    }, false);
+
+
+</script>
+
+</body>
+</html>

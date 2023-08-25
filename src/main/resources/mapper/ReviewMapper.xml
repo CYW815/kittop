@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.ReviewMapper">
+
+    <insert id="saveReview">
+        insert into review (title, content, userEmail, itemId, regDate, orderId)
+        values (#{title}, #{content}, #{userEmail}, #{itemId}, now(), #{orderId})
+    </insert>
+
+    <select id="getNow" resultType="string">
+        select now();
+    </select>
+
+    <select id="findReviewAll" resultType="com.kittop.domain.ReviewVO">
+        select * from review
+    </select>
+
+    <delete id="deleteReviewByReviewId">
+        delete from review where reviewId = #{reviewId}
+    </delete>
+
+    <select id="findReviewByReviewId" resultType="com.kittop.domain.ReviewVO">
+        select reviewId, title, userEmail, content, regDate, orderId, itemId
+        from review
+        where reviewId = #{reviewId}
+    </select>
+
+    <select id="findReviewInfoByItemId" resultType="com.kittop.domain.ReviewVO">
+        select reviewId, title, userEmail, content, regDate, orderId, itemId
+        from review
+        where itemId = #{itemId}
+        limit 0, 5
+    </select>
+
+    <select id="findReviewCount" resultType="int">
+        select count(reviewId) from review
+        <include refid="search"/>
+    </select>
+
+
+    <select id="findReviewByPageRequestDTO" resultType="com.kittop.domain.ReviewVO">
+        select *
+        from review
+        <include refid="search"/>
+        order by reviewId desc limit #{start, jdbcType=INTEGER}, #{size, jdbcType=INTEGER}
+    </select>
+
+    <select id="findReviewByOrderId" resultType="com.kittop.domain.ReviewVO">
+        select * from review where `orderId` = #{orderId}
+    </select>
+
+<!--    <select id="findReviewByPageRequestDTO1" resultType="com.kittop.domain.ReviewVO">-->
+<!--        select r.reviewId, r.title, r.userEmail, r.regDate, i.itemName, i.imgName-->
+<!--        from kittop.review r-->
+<!--                 inner join kittop.item i on r.itemId = i.itemId-->
+<!--        where i.itemId = #{itemId}-->
+<!--        order by r.reviewId desc limit #{start, jdbcType=INTEGER}, #{size, jdbcType=INTEGER}-->
+<!--    </select>-->
+
+    <select id="list" resultType="com.kittop.domain.ReviewVO">
+        select * from review
+        <include refid="search"/>
+        order by reviewId desc limit #{start}, #{size}
+    </select>
+
+    <sql id="search">
+        <where>
+            <if test="types != null and types.length > 0">
+                and
+                <foreach collection="types" item="type" open="(" close=")" separator=" OR">
+                    <if test="type == 't'.toString()">
+                        title like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'w'.toString()">
+                        userEmail like concat('%', #{keyword}, '%')
+                    </if>
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+
+
+</mapper>

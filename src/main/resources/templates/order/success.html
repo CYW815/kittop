@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>kittop</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container container-fluid">
+        <div class="row">
+            <div class="col-md-12 d-flex flex-column justify-content-center align-items-center" style="height: 80vh">
+                <span style="font-size: 3em; text-align: center; margin-bottom: 0.5em;">주문이 정상적으로 완료되었습니다.</span>
+                <button style="margin: 0 auto;" class="btn btn-primary">주문내역 보기</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script layout:fragment="script" th:inline="javascript">
+
+
+</script>
+</body>
+</html>

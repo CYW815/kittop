@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sidebars/">
+    <!-- Bootstrap core CSS -->
+    <link href="/docs/5.1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+          crossorigin="anonymous">
+    <link href="/css/sidebars.css" rel="stylesheet">
+</head>
+
+<!-- 사용자 css 추가 -->
+
+<body>
+
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="flex-shrink-0 p-3 bg-white col-md-2" style="width: 280px;">
+                <a th:href="@{/kittop/admin}"
+                   class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                    <svg class="bi me-2" width="30" height="24">
+                        <use xlink:href="#bootstrap"/>
+                    </svg>
+                    <span class="fs-5 fw-semibold">관리자 페이지</span>
+                </a>
+                <ul class="list-unstyled ps-0">
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                                data-bs-target="#home-collapse" aria-expanded="true">
+                            상품관리
+                        </button>
+                        <div class="collapse show" id="home-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/admin/item/list}" class="link-dark rounded">상품목록</a></li>
+                                <li><a th:href="@{/kittop/admin/item/register}">상품등록</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                                data-bs-target="#dashboard-collapse" aria-expanded="false">
+                            주문관리
+                        </button>
+                        <div class="collapse" id="dashboard-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/admin/order/list}" class="link-dark rounded">주문목록</a></li>
+                                <li><a th:href="@{/kittop/board/ex_list}" class="link-dark rounded">교환관리</a></li>
+                                <li><a th:href="@{/kittop/board/re_list}" class="link-dark rounded">환불관리</a></li>
+                                <li><a th:href="@{/kittop/admin/order/sales}" class="link-dark rounded">매출조회</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse"
+                                data-bs-target="#orders-collapse" aria-expanded="false">
+                            회원/게시판관리
+                        </button>
+                        <div class="collapse" id="orders-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/board/list}" class="link-dark rounded">Q/A</a></li>
+                                <li><a th:href="@{/kittop/admin/userlist}" class="link-dark rounded">회원목록</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="border-top my-3"></li>
+                    <!--                    <li class="mb-1">-->
+                    <!--                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">-->
+                    <!--                            Account-->
+                    <!--                        </button>-->
+                    <!--                        <div class="collapse" id="account-collapse">-->
+                    <!--                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">-->
+                    <!--                                <li><a href="#" class="link-dark rounded">New...</a></li>-->
+                    <!--                                <li><a href="#" class="link-dark rounded">Profile</a></li>-->
+                    <!--                                <li><a href="#" class="link-dark rounded">Settings</a></li>-->
+                    <!--                                <li><a href="#" class="link-dark rounded">Sign out</a></li>-->
+                    <!--                            </ul>-->
+                    <!--                        </div>-->
+                    <!--                    </li>-->
+                </ul>
+            </div>
+            <div class="row mt-3 col-md-8">
+                <form action="/kittop/admin/userlist" method="get">
+                    <div class="col">
+                        <input type="hidden" name="size" th:value="${pageRequestDTO.size}">
+
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <select id="searchType" class="form-select" name="types">
+                                    <option value="e" th:selected="${pageRequestDTO.types == 'e'}">이메일</option>
+                                    <option value="i" th:selected="${pageRequestDTO.types == 'i'}">닉네임</option>
+                                    <option value="n" th:selected="${pageRequestDTO.types == 'n'}">이름</option>
+                                    <option value="in" th:selected="${pageRequestDTO.types == 'in'}">닉네임+이름</option>
+                                    <option value="ein" th:selected="${pageRequestDTO.types == 'ein'}">이메일+이름+닉네임
+                                    </option>
+                                </select>
+                            </div>
+                            <input type="text" class="form-control" name="keyword" th:value="${pageRequestDTO.keyword}">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary searchBtn" type="submit">Search</button>
+                                <button class="btn btn-outline-secondary clearBtn" type="button">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="col">
+
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">User List</h5>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">UserId</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">NickName</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Birth</th>
+                            <th scope="col">Gender</th>
+                            <th scope="col">Addr</th>
+                            <th scope="col">Phone</th>
+                        </tr>
+                        </thead>
+
+                        <tbody th:with="link = ${pageRequestDTO.getLink()}">
+                        <tr th:each="dto:${responseDTO.dtoList}">
+                            <th scope="col">[[${dto.userId}]]</th>
+                            <td>[[${dto.email}]]</td>
+                            <td>[[${dto.nickName}]]</td>
+                            <td>[[${dto.name}]]</td>
+                            <td>[[${dto.birth}]]</td>
+                            <td>[[${dto.gender}]]</td>
+                            <td th:text="${dto.addr.substring(dto.addr.indexOf('/') + 1, dto.addr.lastIndexOf(' '))}"></td>
+                            <td>[[${dto.phone}]]</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <!--페이지 버튼-->
+                    <div class="float-end">
+                        <ul class="pagination flex-wrap">
+                            <div th:if="${responseDTO.total > 0}">
+                                <li class="page-item" th:if="${responseDTO.prev}">
+                                    <a class="page-link" th:data-num="${responseDTO.start - 1}">Previous</a>
+                                </li>
+                            </div>
+                            <!--#numbers.sequence : 특정한 범위의 연속된 숫자를 만듦-->
+                            <th:block th:each="i: ${#numbers.sequence(responseDTO.start , responseDTO.end)}">
+                                <li th:if="${i != 0}"
+                                    th:class="${responseDTO.page == i} ? 'page-item active' : 'page-item'">
+                                    <a class="page-link" th:data-num="${i}">[[${i}]]</a>
+                                    <!--data-num이라는 속성으로 페이지 처리-->
+                                </li>
+                            </th:block>
+                            <li class="page-item" th:if="${responseDTO.next}">
+                                <a class="page-link" th:data-num="${responseDTO.end + 1}">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script layout:fragment="script" th:inline="javascript">
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URL(location.href).searchParams;
+        const el = document.getElementById('searchType');
+        const len = el.options.length;
+
+        // 문의 목록 페이지가 검색 목록을 보여주는 페이지라면 (검색결과 화면이라면)
+        if (urlParams.get('types') !== null) {
+            const str = urlParams.get('types');
+            for (let i = 0; i < len; i++) {
+                if (el.options[i].value == str) {
+                    el.options[i].selected = true;
+                }
+            }
+        } else {
+            el.options[0].selected = true;
+        }
+    });
+
+    document.querySelector(".pagination").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.target;
+
+        if (target.tagName !== 'A') {
+            return;
+        }
+
+        const num = target.getAttribute("data-num");
+        const formObj = document.querySelector("form");
+
+        formObj.innerHTML += `<input type='hidden' name='page' value='${num}'>`;
+        formObj.submit();
+
+    }, false)
+
+
+    document.querySelector(".clearBtn").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        self.location = '/kittop/admin/userlist';
+    }, false)
+
+</script>
+</body>
+</html>

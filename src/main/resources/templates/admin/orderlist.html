@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>kittop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
+    <style>
+        a {
+            text-decoration: none;
+            color: #626262;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container col-md-12">
+        <h3>주문내역 조회</h3>
+        <div class="col-md-12 row">
+            <div style="width: 10vw"><a href="/kittop/admin/order/list">전체주문</a></div>
+            <div style="width: 10vw"><a href="/kittop/admin/order/list?keyword=결제완료&types=s">결제완료</a></div>
+            <div style="width: 12vw"><a href="/kittop/admin/order/list?keyword=배송중&types=s">배송중</a></div>
+            <div style="width: 13vw"><a href="/kittop/admin/order/list?keyword=배송완료&types=s">배송완료</a></div>
+            <div style="width: 10vw"><a href="/kittop/admin/order/list?keyword=구매확정&types=s">구매확정</a></div>
+            <div style="width: 5vw"><a href="/kittop/admin/order/list?keyword=교환&types=s">교환</a></div>
+            <div style="width: 10vw"><a href="/kittop/admin/order/list?keyword=환불신청&types=s">환불신청</a></div>
+            <div style="width: 5vw"><a href="/kittop/admin/order/list?keyword=취소&types=s">취소</a></div>
+        </div>
+        <hr>
+        <form action="/kittop/admin/order/list" method="get">
+            <div class="col">
+                <input type="hidden" name="size" th:value="${pageRequestDTO.size}">
+
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <select id="searchType" class="form-select" name="types">
+                            <option value="o" th:selected="${pageRequestDTO.types == 'o'}">주문인</option>
+                            <option value="r" th:selected="${pageRequestDTO.types == 'r'}">수취인</option>
+                            <option value="op" th:selected="${pageRequestDTO.types == 'op'}">주문인전화번호</option>
+                            <option value="rp" th:selected="${pageRequestDTO.types == 'rp'}">수취인전화번호</option>
+                            <option value="on" th:selected="${pageRequestDTO.types == 'on'}">주문번호</option>
+                            <option value="s" th:selected="${pageRequestDTO.types == 's'}">주문상태</option>
+                        </select>
+                    </div>
+                    <input type="text" class="form-control" name="keyword" th:value="${pageRequestDTO.keyword}">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary searchBtn" type="submit">Search</button>
+                        <button class="btn btn-outline-secondary clearBtn" type="button">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <br>
+    </div>
+    <div>
+        <table class="table">
+            <thead class="table-dark">
+            <tr>
+                <th scope="col">□</th>
+                <th scope="col" style="text-align: center">주문번호</th>
+                <th scope="col" style="text-align: center">주문일자</th>
+                <th scope="col" style="text-align: center">주문인</th>
+                <th scope="col" style="text-align: center">수취인</th>
+                <th scope="col" style="text-align: center" colspan="2">주문상품</th>
+                <th scope="col" style="text-align: center">결제금액</th>
+                <th scope="col" style="text-align: center">주문인전화번호</th>
+                <th scope="col" style="text-align: center">수취인전화번호</th>
+                <th scope="col" style="text-align: center">주문상태</th>
+            </tr>
+            </thead>
+            <tbody class="orderList">
+            <tr th:each="order : ${pageResponseDTO.dtoList}"
+                th:with="total = ${pageResponseDTO.total - ((pageResponseDTO.page - 1) * pageResponseDTO.size)}">
+                <td><input type="checkbox"></td>
+                <td><a th:href="|@{/kittop/admin/order/info(orderId=${order.orderId})}|" th:text="${order.orderId}">${order.orderId}</a>
+                </td>
+                <td th:text="${#dates.format(order.regDate, 'yyyy-MM-dd HH:mm:ss')}">orderDate</td>
+                <td th:text="${order.orderer}">orderer</td>
+                <td th:text="${order.receiver}">receiver</td>
+                <td th:text="${order.item.itemName}">itemName</td>
+                <td th:text="${order.item.imgName}">imgName</td>
+                <td th:text="${order.totalPrice}">totalprice</td>
+                <td th:text="${order.ordererPhone}">ordererPhone</td>
+                <td th:text="${order.receiverPhone}">receiverPhone</td>
+                <td th:text="${order.status}">status</td>
+            </tr>
+            </tbody>
+        </table>
+        <!-- Pagination -->
+        <div class="">
+            <ul class="pagination flex-wrap">
+                <li class="page-item" th:if="${pageResponseDTO.prev}">
+                    <a class="page-link" th:data-num="${pageResponseDTO.start - 1}">Prev</a>
+                </li>
+                <th:block th:each="i : ${#numbers.sequence(pageResponseDTO.start, pageResponseDTO.end)}">
+                    <li th:if="${i != 0}"
+                        th:class="${pageResponseDTO.page == i} ? 'page-item active' : 'page-item'">
+                        <a th:class="page-link" th:data-num="${i}">[[${i}]]</a>
+                    </li>
+                </th:block>
+                <li th:class="page-item" th:if="${pageResponseDTO.next}">
+                    <a class="page-link" th:data-num="${pageResponseDTO.end + 1}">Next</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <br><br>
+    <form>
+        <input type="hidden" name="types" th:value="${pageRequestDTO.types}">
+        <input type="hidden" name="keyword" th:value="${pageRequestDTO.keyword}">
+    </form>
+</div>
+<script layout:fragment="script" th:inline="javascript">
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URL(location.href).searchParams;
+        const el = document.getElementById('searchType');
+        const len = el.options.length;
+
+        // 문의 목록 페이지가 검색 목록을 보여주는 페이지라면 (검색결과 화면이라면)
+        if (urlParams.get('types') !== null) {
+            const str = urlParams.get('types');
+            for (let i = 0; i < len; i++) {
+                if (el.options[i].value == str) {
+                    el.options[i].selected = true;
+                }
+            }
+        } else {
+            el.options[0].selected = true;
+        }
+    });
+
+    document.querySelector(".clearBtn").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        self.location = '/kittop/admin/order/list';
+    }, false)
+
+
+    document.querySelector(".pagination").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = e.target;
+        if (target.tagName !== 'A') {
+            return;
+        }
+        const num = target.getAttribute("data-num");
+        const formObj = document.querySelector('form');
+        formObj.innerHTML += `<input type="hidden" name="page" value="${num}">`;
+        formObj.submit();
+    });
+
+</script>
+</body>
+</html>

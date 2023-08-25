@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.RippleMapper">
+
+    <insert id="saveRipple">
+        insert into ripple (content, boardId) values (#{content}, #{boardId})
+    </insert>
+
+    <delete id="deleteRipple">
+        delete from ripple where rippleId = #{rippleId}
+    </delete>
+
+    <select id="findRippleByBoardId" resultType="com.kittop.domain.RippleVO">
+        select rippleId, content, regDate from ripple where boardId = #{boardId}
+    </select>
+
+</mapper>

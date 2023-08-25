@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.ItemMapper">
+
+    <insert id="saveItem">
+        insert into item (category, itemName, price, content, stock, imgName) values
+            (#{category}, #{itemName}, #{price}, #{content}, #{stock}, #{imgName})
+    </insert>
+
+    <update id="updateItem">
+        update item set category = #{category}, itemName = #{itemName}, price = #{price},
+                               content = #{content}, stock = #{stock}, imgName = #{imgName}, updateDate = now() where itemId = #{itemId}
+    </update>
+
+    <update id="updateItemHitByItemId">
+        update item set hit = hit + 1 where itemId = #{itemId}
+    </update>
+
+    <delete id="deleteItem">
+        delete from item where itemId = #{itemId}
+    </delete>
+
+    <delete id="deleteSelectedItems">
+        delete from item where itemId in
+        <foreach collection="itemId" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="findItemAll" resultType="com.kittop.domain.ItemVO">
+        select * from item
+    </select>
+
+    <select id="findItemByItemId" resultType="com.kittop.domain.ItemVO">
+        select itemId, itemName, price, hit, imgName, stock, category, content from item where itemId = #{itemId}
+    </select>
+
+    <select id="findItemByPageRequestDTO" resultType="com.kittop.domain.ItemVO">
+        select itemId, itemName, price, hit, imgName, stock from item
+        <include refid="search"/>
+        order by itemId desc limit #{start}, #{size}
+    </select>
+
+    <select id="findItemCountByPageRequestDTO" resultType="int">
+        select count(itemId) from item
+        <include refid="search"/>
+    </select>
+
+    <sql id="search">
+        <where>
+            <if test="category != null and category.length() > 0">
+                category like concat('%', #{category}, '%')
+            </if>
+            <if test="keyword != null and keyword.length() > 0">
+                and itemName like concat('%', #{keyword}, '%')
+            </if>
+        </where>
+    </sql>
+
+</mapper>

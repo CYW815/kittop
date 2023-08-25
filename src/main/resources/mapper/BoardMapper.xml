@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.BoardMapper">
+
+    <select id="getNow" resultType="string">
+        select now();
+    </select>
+
+    <insert id="saveBoard">
+        insert into board (title, content, userEmail, category, regDate) values (#{title}, #{content}, #{userEmail}, #{category}, now())
+    </insert>
+
+    <insert id="saveReBoard">
+        insert into board (title, content, userEmail, category, regDate, orderId) values (#{title}, #{content}, #{userEmail}, #{category}, now(), #{orderId})
+    </insert>
+
+    <select id="findBoardAll" resultType="com.kittop.domain.BoardVO">
+        select * from board
+    </select>
+
+
+    <select id="findBoardByBoardId" resultType="com.kittop.domain.BoardVO">
+        select * from board where `boardId` = #{boardId}
+    </select>
+
+    <select id="findBoardByOrderId" resultType="com.kittop.domain.BoardVO">
+        select * from board where `orderId` = #{orderId}
+    </select>
+
+    <update id="updateBoard">
+        update board set title = #{title}, content = #{content}, updateDate = now() where `boardId` = #{boardId}
+    </update>
+
+    <delete id="deleteBoardByBoardId">
+        delete from board where boardId = #{boardId}
+    </delete>
+
+    <select id="list" resultType="com.kittop.domain.BoardVO">
+        select * from board
+        <include refid="search"/>
+        order by boardId desc limit #{start}, #{size}
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(boardId) from board
+        <include refid="search"/>
+    </select>
+
+    <sql id="search">
+        <where>
+            category = #{category}
+            <if test="types != null and types.length > 0">
+                and
+                <foreach collection="types" item="type" open="(" close=")" separator=" OR">
+                    <if test="type == 't'.toString()">
+                        title like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'w'.toString()">
+                        userEmail like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'c'.toString()">
+                        content like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'tc'.toString()">
+                        content like concat('%', #{keyword}, '%')
+                        or
+                        title like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'tcw'.toString()">
+                        content like concat('%', #{keyword}, '%')
+                        or
+                        title like concat('%', #{keyword}, '%')
+                        or
+                        userEmail like concat('%', #{keyword}, '%')
+                    </if>
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+
+
+
+
+
+    <!--    <sql id="search">-->
+    <!--        <where>-->
+    <!--            <if test="types != null and types.length >0">-->
+    <!--                <foreach collection="types" item="type" open="(" close=")" separator=" OR">-->
+    <!--                    <if test="type == 'w'.toString()">-->
+    <!--                        title like concat('%', #{keyword}, '%')-->
+    <!--                    </if>-->
+    <!--                    <if test="type == 't'.toString()">-->
+    <!--                        content like concat('%', #{keyword}, '%')-->
+    <!--                    </if>-->
+    <!--                </foreach>-->
+    <!--            </if>-->
+    <!--        </where>-->
+    <!--    </sql>-->
+
+</mapper>

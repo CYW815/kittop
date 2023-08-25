@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>QnA Board Read</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/ripple.js"></script>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="row mt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Q&A 게시판
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">게시판번호</span>
+                        <input type="text" class="form-control" th:value="${dto.boardId}" readonly>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">제목</span>
+                        <input type="text" class="form-control" th:value="${dto.title}" readonly>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">내용</span>
+                        <textarea class="form-control com-sm-5" rows="5" readonly>[[${dto.content}]]</textarea>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">작성자메일</span>
+                        <input type="text" class="form-control" th:value="${dto.userEmail}" readonly>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">등록일자</span>
+                        <input type="text" class="form-control"
+                               th:value="${#temporals.format(dto.regDate, 'yyyy-MM-dd')}" readonly>
+                    </div>
+
+                    <div class="my-4">
+                        <div class="float-end" th:with="link = ${pageRequestDTO.getLink()}">
+                            <a th:href="|@{/kittop/board/list}?${link}|" class="text-decoration-none">
+                                <button type="button" class="btn btn-primary">목록</button>
+                            </a>
+
+
+                            <a th:if="${dto.userEmail == loggedInEmail}"
+                               th:href="|@{/kittop/board/modify(boardId=${dto.boardId})}&${link}|"
+                               class="text-decoration-none">
+                                <button type="button" class="btn btn-secondary">수정</button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <form name="infoform">
+
+            </form>
+            <div class="card-body">
+                <form sec:authorize="hasAnyAuthority('ROLE_ADMIN')">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">관리자답변</span>
+                        <textarea name="text" class="form-control com-sm-5, ripple" rows="3"></textarea>
+                    </div>
+                    <button type="button" class="addRipple">댓글 작성</button>
+                    <div th:if="${dto.category == 'R'}">
+                        <button type="button" th:onclick="confirmRe([[${dto.orderId}]],[[${dto.boardId}]])">환불완료
+                        </button>
+                        <button type="button" th:onclick="rejectRe([[${dto.orderId}]],[[${dto.boardId}]])">환불거부</button>
+                    </div>
+                    <div th:if="${dto.category == 'E'}">
+                        <button type="button" th:onclick="confirmEx([[${dto.orderId}]],[[${dto.boardId}]])">교환완료
+                        </button>
+                        <button type="button" th:onclick="rejectEx([[${dto.orderId}]],[[${dto.boardId}]])">교환거부</button>
+                    </div>
+                </form>
+
+                <table class="table">
+                    <tbody class="rippleList">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script layout:fragment="script" th:inline="javascript">
+        const boardId = [[${dto.boardId}]];
+        rippleList(boardId)
+
+        document.querySelector(".addRipple").addEventListener("click", function (e) {
+            const content = document.querySelector(".ripple");
+            const rippleObj = {boardId: [[${dto.boardId}]], content: `${content.value}`};
+            addRipple(rippleObj).then(r => {
+                alert(r.data.result);
+                content.value = ``;
+                rippleList(boardId)
+            });
+        })
+
+        function rippleList(boardId) {
+            listRipple(boardId).then(result => {
+                let str = `  <thead>
+                                <tr>
+                                  <th scope="col">내용</th>
+                                  <th scope="col">날짜</th>
+                                  <th scope="col">삭제</th>
+                                </tr>
+                              </thead>`;
+                for (r of result.data) {
+                    const date = dateFormat(new Date(r.regDate))
+                    str += `<tr>
+                            <td>${r.content}</td>
+                            <td>${date}</td>
+                            <td><button class="deleteRipple" onclick="deleteRipple(${r.rippleId})">X</button></td>
+                         </tr>`;
+                }
+                document.querySelector(".rippleList").innerHTML = str;
+            })
+        }
+
+        function deleteRipple(rippleId) {
+            removeRipple(rippleId).then(result => {
+                alert(result.data.result);
+                rippleList(boardId)
+            })
+        }
+
+        function dateFormat(date) {
+            return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
+        }
+
+        function confirmRe(orderId, boardId) {
+            formObj = document.infoform;
+            formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId">
+                            <input type="hidden" name="status" value="환불완료">
+                            <input type="hidden" name="boardId" value="${boardId}">`;
+            formObj.action = `/kittop/admin/order/update`;
+            formObj.method = `post`;
+            formObj.submit();
+        }
+
+        function rejectRe(orderId, boardId) {
+            formObj = document.infoform;
+            formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId">
+                            <input type="hidden" name="status" value="환불거부">
+                            <input type="hidden" name="boardId" value="${boardId}">`;
+            formObj.action = `/kittop/admin/order/update`;
+            formObj.method = `post`;
+            formObj.submit();
+        }
+
+        function confirmEx(orderId, boardId) {
+            formObj = document.infoform;
+            formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId">
+                            <input type="hidden" name="status" value="교환완료">
+                            <input type="hidden" name="boardId" value="${boardId}">`;
+            formObj.action = `/kittop/admin/order/update`;
+            formObj.method = `post`;
+            formObj.submit();
+        }
+
+        function rejectEx(orderId, boardId) {
+            formObj = document.infoform;
+            formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId">
+                            <input type="hidden" name="status" value="교환거부">
+                            <input type="hidden" name="boardId" value="${boardId}">`;
+            formObj.action = `/kittop/admin/order/update`;
+            formObj.method = `post`;
+            formObj.submit();
+        }
+
+    </script>
+
+</body>
+</html>

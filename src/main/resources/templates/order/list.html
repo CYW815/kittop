@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>kittop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sidebars/">
+    <!-- Bootstrap core CSS -->
+    <link href="/css/sidebars.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid vw-100">
+        <div class="row">
+            <div class="flex-shrink-0 p-3 bg-white col-md-1" style="width: 280px;" th:if="${#authentication}" th:with="currentUser=${#authentication.principal}">
+                <a th:href="@{/kittop/user/info(userId=${currentUser.userId})}" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                    <svg class="bi me-2" width="30" height="24"><use xlink:href="#bootstrap"/></svg>
+                    <span class="fs-5 fw-semibold">마이페이지</span>
+                </a>
+                <ul class="list-unstyled ps-0">
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
+                            정보관리
+                        </button>
+                        <div class="collapse show" id="home-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li th:if="${#authentication}" th:with="currentUser=${#authentication.principal}">
+                                    <a th:href="@{/kittop/user/modify(userId=${currentUser.userId})}" class="link-dark rounded">정보수정</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
+                            주문내역
+                        </button>
+                        <div class="collapse" id="dashboard-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/cart/list}" class="link-dark rounded">장바구니</a></li>
+                                <li><a th:href="@{/kittop/order/list}" class="link-dark rounded">주문내역</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+                            게시판
+                        </button>
+                        <div class="collapse" id="orders-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/board/list}" class="link-dark rounded">Q/A</a></li>
+                                <li><a th:href="@{/kittop/review/list}" class="link-dark rounded">리뷰</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="border-top my-3"></li>
+                </ul>
+            </div>
+            <div class="container col-md-9">
+                <h3>주문내역 조회</h3>
+                <div class="col-md-12 row">
+                    <div style="width: 10vw">결제완료</div>
+                    <div style="width: 10vw">배송중</div>
+                    <div style="width: 10vw">배송완료</div>
+                    <div style="width: 10vw">구매확정</div>
+                    <div style="width: 10vw">교환완료</div>
+                    <div style="width: 10vw">환불요청</div>
+                    <div style="width: 10vw">환불완료</div>
+                </div>
+                <hr>
+                <form action="/kittop/order/list" method="get">
+                    <div class="col">
+                        <input type="hidden" name="size" th:value="${pageRequestDTO.size}">
+
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <select id="searchType" class="form-select" name="types">
+                                    <option value="on" th:selected="${pageRequestDTO.types == 'on'}">주문번호</option>
+                                    <option value="s" th:selected="${pageRequestDTO.types == 's'}">주문상태</option>
+                                </select>
+                            </div>
+                            <input type="text" class="form-control" name="keyword" th:value="${pageRequestDTO.keyword}">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary searchBtn" type="submit">Search</button>
+                                <button class="btn btn-outline-secondary clearBtn" type="button">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <br>
+                <table class="table">
+                    <thead class="table-dark">
+                    <tr>
+                        <th scope="col" style="text-align: center">번호</th>
+                        <th scope="col" colspan="2" style="text-align: center">상품정보</th>
+                        <th scope="col" style="text-align: center">주문일자</th>
+                        <th scope="col" style="text-align: center">주문번호</th>
+                        <th scope="col" style="text-align: center">주문금액(수량)</th>
+                        <th scope="col" colspan="2" style="text-align: center">주문상태</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="order : ${pageResponseDTO.dtoList}" th:with="total = ${pageResponseDTO.total - ((pageResponseDTO.page - 1) * pageResponseDTO.size)}" class="${order.status}">
+                        <td th:text="${total - orderStat.index}">No.</td>
+                        <td>
+                            <img th:src="|@{/images/}${order.item.imgName}|" width="50px" height="50px">
+                        </td>
+                        <td th:text="${order.item.itemName}">itemName</td>
+                        <td th:text="${#dates.format(order.regDate, 'yyyy-MM-dd HH:mm:ss')}">orderDate</td>
+                        <td><a class="text-decoration-none link-dark" th:href="|@{/kittop/order/info(orderId=${order.orderId})}|" th:text="${order.tossOrderId}">${order.tossOrderId}</a></td>
+                        <td th:text="${order.totalPrice} + '(' + ${order.count} + '개)'">itemPrice</td>
+                        <td th:text="${order.status}">status</td>
+                        <td th:if="${order.status == '결제완료'}">
+                            <button th:onclick="'deleteOrder(' + ${order.orderId} + ')'" class="btn btn-secondary cancelBtn">주문취소</button>
+                        </td>
+                        <td th:if="${order.status == '배송중' || order.status == '배송완료'}">
+                            <a class="btn btn-secondary" th:href="@{/kittop/board/ex_register(orderId=${order.orderId})}">
+                                교환/환불요청
+                            </a>
+                            <button th:onclick="'confirmOrder(' + ${order.orderId} + ')'" class="confirmBtn btn btn-secondary">구매확정</button>
+                        </td>
+                        <td th:if="${order.status == '교환거부'}">
+                            <button class="btn btn-secondary" th:if="${order.boardId != 0}" th:onclick="'readExBoard(' + ${order.boardId} + ')'">교환요청보기</button>
+                            <button th:onclick="'confirmOrder(' + ${order.orderId} + ')'" class="confirmBtn btn btn-secondary">구매확정</button>
+                        </td>
+                        <td th:if="${order.status == '환불거부'}">
+                            <button class="btn btn-secondary" th:if="${order.boardId != 0}" th:onclick="'readExBoard(' + ${order.boardId} + ')'">환불요청보기</button>
+                            <button th:onclick="'confirmOrder(' + ${order.orderId} + ')'" class="confirmBtn btn btn-secondary">구매확정</button>
+                        </td>
+                        <td th:if="${order.status == '교환완료'}">
+                            <button class="btn btn-secondary" th:if="${order.boardId != 0}" th:onclick="'readExBoard(' + ${order.boardId} + ')'">교환요청보기</button>
+                            <button th:onclick="'confirmOrder(' + ${order.orderId} + ')'" class="confirmBtn btn btn-secondary">구매확정</button>
+                        </td>
+                        <td th:if="${order.status == '교환신청'}">
+                            <button class="btn btn-secondary" th:if="${order.boardId != 0}" th:onclick="'readExBoard(' + ${order.boardId} + ')'">교환요청보기</button>
+                        </td>
+                        <td th:if="${order.status == '환불신청' || order.status == '환불완료'}">
+                            <button class="btn btn-secondary" th:if="${order.boardId != 0}" th:onclick="'readExBoard(' + ${order.boardId} + ')'">환불요청보기</button>
+                        </td>
+                        <td th:if="${order.status == '구매확정'}">
+                            <button class="btn btn-secondary" disabled>구매확정</button>
+                            <!--                    <button th:onclick="'writeReview(' + ${order.orderId} + ')'" class="reviewBtn">리뷰작성</button>-->
+                            <button class="btn btn-secondary" th:if="${order.reviewId == 0}" th:onclick="'writeReview(' + ${order.orderId} + ')'">리뷰작성</button>
+                            <button class="btn btn-secondary" th:if="${order.reviewId != 0}" th:onclick="'readReview(' + ${order.reviewId} + ')'">리뷰보기</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="">
+                    <ul class="pagination flex-wrap">
+                        <li class="page-item" th:if="${pageResponseDTO.prev}">
+                            <a class="page-link" th:data-num="${pageResponseDTO.start - 1}">Prev</a>
+                        </li>
+                        <th:block th:each="i : ${#numbers.sequence(pageResponseDTO.start, pageResponseDTO.end)}">
+                            <li th:if="${i != 0}"
+                                th:class="${pageResponseDTO.page == i} ? 'page-item' : 'page-item'">
+                                <a class="page-link"
+                                   th:style="${pageResponseDTO.page == i} ? 'background-color: darkgrey; color: white;' : 'color: black'"
+                                   th:data-num="${i}">[[${i}]]</a>
+                            </li>
+                        </th:block>
+                        <li th:class="page-item" th:if="${pageResponseDTO.next}">
+                            <a class="page-link" th:data-num="${pageResponseDTO.end + 1}">Next</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <form name="listform">
+
+            </form>
+        </div>
+    </div>
+</div>
+
+        <script layout:fragment="script" th:inline="javascript">
+
+            document.querySelector(".pagination").addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const target = e.target;
+                if (target.tagName !== 'A') {
+                    return;
+                }
+                const num = target.getAttribute("data-num");
+                const formObj = document.querySelector('form');
+                formObj.innerHTML += `<input type="hidden" name="page" value="${num}">`;
+                formObj.submit();
+            });
+
+
+            function deleteOrder(orderId) {
+                formObj = document.listform;
+                formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId"><input type="hidden" name="status" value="주문취소">`
+                formObj.action = `/kittop/order/update`;
+                formObj.method = `post`;
+                formObj.submit();
+            }
+
+            function confirmOrder(orderId) {
+                formObj = document.listform;
+                formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId"><input type="hidden" name="status" value="구매확정">`
+                formObj.action = `/kittop/order/update`
+                formObj.method = `post`;
+                formObj.submit();
+            }
+
+            function writeReview(orderId) {
+                formObj = document.listform;
+                formObj.innerHTML = `<input type="hidden" value=${orderId} name="orderId">`
+                formObj.action = `/kittop/review/register`;
+                formObj.method = `get`;
+                formObj.submit();
+            }
+
+            function readReview(reviewId) {
+                formObj = document.listform;
+                formObj.innerHTML = `<input type="hidden" value=${reviewId} name="reviewId">`
+                formObj.action = `/kittop/review/info`;
+                formObj.method = `get`;
+                formObj.submit();
+            }
+
+            function readExBoard(boardId) {
+                formObj = document.listform;
+                formObj.innerHTML = `<input type="hidden" value=${boardId} name="boardId">`
+                formObj.action = `/kittop/board/info`;
+                formObj.method = `get`;
+                formObj.submit();
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                const urlParams = new URL(location.href).searchParams;
+                const el = document.getElementById('searchType');
+                const len = el.options.length;
+
+                // 문의 목록 페이지가 검색 목록을 보여주는 페이지라면 (검색결과 화면이라면)
+                if (urlParams.get('types') !== null) {
+                    const str = urlParams.get('types');
+                    for (let i = 0; i < len; i++) {
+                        if (el.options[i].value == str) {
+                            el.options[i].selected = true;
+                        }
+                    }
+                } else {
+                    el.options[0].selected = true;
+                }
+            });
+
+            document.querySelector(".clearBtn").addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                self.location = '/kittop/order/list';
+            }, false)
+
+        </script>
+</body>
+</html>

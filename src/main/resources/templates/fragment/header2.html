@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <!-- 사용자 css 추가 -->
+    <style>
+
+        a {
+            text-decoration: none;
+            color: #626262;
+        }
+
+        li > a {
+            text-decoration: none;
+            color: #626262;
+        }
+
+        * ul li {
+            list-style: none;
+        }
+
+        #header {
+            min-height: 100px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<!-- header 영역 -->
+<div class="container" id="header" th:fragment="header" th:if="${#authentication}"
+     th:with="currentUser=${#authentication.principal}">
+    <header class="blog-header py-3">
+        <div class="row flex-nowrap justify-content-evenly align-items-center col-12">
+            <div class="col-3 pt-1 justify-content-evenly align-items-center">
+                <!-- sec:authorize="isAuthenticated()"
+                        로그인한 상태이면 마이페이지 메뉴를 보여주도록 설정-->
+                <span><a class="link-secondary text-decoration-none" th:href="@{/kittop/board/list}">Q&A</a></span>
+                <span><a class="link-secondary text-decoration-none" th:href="@{/kittop/review/list}">Review</a></span>
+                <!-- sec:authorize="hasAnyAuthority('ADMIN')"
+                         관리자계정(ADMIN ROLE)으로 로그인한 경우 보이도록 설정-->
+                <a class="link-secondary text-decoration-none" th:href="@{/kittop/admin}"
+                   sec:authorize="hasAnyAuthority('ROLE_ADMIN')">Admin</a>
+            </div>
+            <div class="col-4 justify-content-center text-center">
+                <a class="p-2 link-dark navbar-brand d-inline-block" href="/"
+                   style="font-weight: bold; font-size: 30px">
+                    KITTOP
+                </a>
+            </div>
+            <!-- sec:authorize="isAnonymous()"
+                    로그인하지 않은 상태이면 로그인 메뉴를 보여주도록 설정-->
+            <a class="link-secondary justify-content-end w-25 text-center text-decoration-none"
+               th:href="@{/kittop/login}" sec:authorize="isAnonymous()">Sign up</a>
+            <!-- sec:authorize="isAuthenticated()"
+                    로그인한 상태이면 프로필 메뉴를 보여주도록 설정-->
+            <div class="flex-shrink-0 dropdown justify-content-end text-center col-1" sec:authorize="isAuthenticated()">
+                <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser2"
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    <img th:src="|@{/images/login.png}|" alt="mdo" width="20px" height="20px" class="rounded-circle">
+                </a>
+                <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+                    <li><a class="dropdown-item" th:href="@{/kittop/user/info(userId=${currentUser.userId})}"
+                           sec:authorize="isAuthenticated()">MyPage</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" th:href="@{/kittop/logout}">Sign out</a></li>
+                </ul>
+            </div>
+            <!-- 회원일 경우에만 카트 보임 -->
+            <div class="col-1 d-flex justify-content-center align-items-center w-auto" sec:authorize="isAuthenticated()">
+                <a class="btn btn-outline-dark" th:href="@{/kittop/cart/list}" role="button">
+                    <i class="bi-cart-fill me-1"></i>
+                    Cart
+                    <span class="badge bg-dark text-white ms-1 rounded-pill cartCount" th:if="${session.cartCount != null}"
+                          th:text="${session.cartCount}"></span>
+                </a>
+            </div>
+        </div>
+    </header>
+</div>
+<!-- header 영역 끝-->
+</body>
+</html>

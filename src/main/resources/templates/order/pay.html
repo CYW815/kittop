@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Pay Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
+    <script src="https://spi.maps.daum.net/imap/map_js_init/postcode.v2.js"></script>
+
+    <!-- 사용자 css 추가 -->
+    <th:block layout:fragment="css">
+        <style>
+            #payCard {
+                margin: 0;
+                padding: 0;
+                left: 0;
+            }
+            #payCard ul,
+            #payCard li {
+                list-style: none;
+            }
+        </style>
+    </th:block>
+</head>
+<div layout:fragment="content">
+    <div class="container container-fluid px-4">
+        <div class="row">
+            <div class="col-md-8">
+                <form name="payForm" class="row g-3">
+                    <input type="hidden" name="addr">
+                    <span>주문자 정보</span>
+                    <hr>
+                    <div class="col-md-6">
+                        <label for="inputName" class="form-label">성함</label>
+                        <input type="text" class="form-control userName" id="inputName" th:value="${user.name}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="inputPhoneNum" class="form-label">전화번호</label>
+                        <input type="text" class="form-control userPhone" id="inputPhoneNum" th:value="${user.phone}" readonly>
+                    </div>
+                    <div class="col-md-12">
+                        <label  class="form-label">주소</label>
+                        <p class="form-control" style="background-color: #e9ecef" th:text="${'(' + user.addr.split('/')[0]} + ')' + ${user.addr.split('/')[1]} + ' ' + ${user.addr.split('/')[2]}"></p>
+                    </div>
+                    <hr>
+                    <span>수취인 정보 (주문자와 동일 <input type="checkbox" class="check">)</span>
+                    <hr>
+                    <div class="col-md-6">
+                        <label for="inputName2" class="form-label">성함</label>
+                        <input type="text" class="form-control subName" name="receiver" id="inputName2">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="inputPhoneNum2" class="form-label">전화번호</label>
+                        <input type="text" class="form-control subPhone" name="receiverPhone" id="inputPhoneNum2">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label th:for="zipcode" class="form-label">우편번호</label>
+                        <input type="text" class="form-control zipcode" name="zipcode" placeholder="우편번호 검색" value=""
+                               readonly>
+                    </div>
+                    <div class="col-md-6 d-flex flex-column">
+                        <label class="form-label">우편번호 검색</label>
+                        <input type="button" class="btn btn-secondary btn-sm" value="우편번호 검색" onclick="execDaumPostcode()">
+                        <label th:for="addr1" class="form-label"></label>
+                    </div>
+                    <div class="col-md-12">
+                        <input type="text" class="form-control addr1" name="addr1" placeholder="주소를 입력해주세요." value=""
+                               required readonly>
+                        <p id="addr1Error" class="fieldError"></p>
+                    </div>
+                    <div class="col-md-12">
+                        <input type="text" class="form-control addr2" name="addr2" placeholder="상세 주소를 입력해주세요." value=""
+                               required>
+                        <p id="addr2Error" class="fieldError"></p>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="inputRequest" class="form-label">요청사항</label>
+                        <input type="text" class="form-control" id="inputRequest" name="request" placeholder="배송시 요청사항">
+                    </div>
+                    <hr>
+                    <span>결제 수단</span>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-primary">
+                            <input type="radio" name="payment" checked value="Toss" id="option1" autocomplete="off"> Toss Pay
+                        </label>
+                    </div>
+                </form>
+                <br>
+            </div>
+            <div class="col-md-4" id="payCard">
+                <div class="py-5">
+                    <div class="container px-4 px-lg-5 mt-5">
+                        <div class="col-md-11" style="border:1px solid black">
+                            <h5>결제 상품</h5>
+                            <hr>
+                            <ul th:each="item : ${session.cart.cartList}">
+                                <li>
+                                    <span th:text="${item.itemName}"></span>
+                                    <span th:text="${item.count} + '개'"></span>
+                                    <span class="price" th:text="${item.price * item.count} + '원'"></span>
+                                </li>
+                            </ul>
+                            <hr>
+                            <div class="col-md-12">
+                                <p style="font-weight: bold"><span class="totalPrice"></span></p>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-dark paymentButton">결제 하기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script layout:fragment="script" th:inline="javascript">
+
+    document.querySelector(".paymentButton").addEventListener("click", function (e) {
+        const form = document.payForm;
+        const addr = form.addr;
+        const zipcode = form.zipcode;
+        const addr1 = form.addr1;
+        const addr2 = form.addr2;
+        if(zipcode.value !== ""){
+            addr.value = zipcode.value + "/";
+        }
+        if(addr1.value !== ""){
+            addr.value = addr.value + addr1.value + "/"
+        }
+        if(addr2.value !== ""){
+            addr.value = addr.value + addr2.value;
+        }
+        let next = true;
+        document.querySelectorAll("input").forEach(item => {
+            if(item.getAttribute("name") !== "request" && item.getAttribute("name") != null){
+                if(item.value === '' && next){
+                    next = false;
+                    alert("배송요청을 제외한 다른값은 필수입니다");
+                }
+            }
+        })
+        if(next){
+            form.action = `/kittop/toss/payment`;
+            form.method = `post`;
+            form.submit();
+        }
+
+    })
+
+    let total = 0;
+    document.querySelectorAll(".price").forEach(c => {
+        total = total + parseInt(c.innerText);
+    })
+    document.querySelector('.totalPrice').innerText = `총 금액 : ${total}원`;
+
+    const check = document.querySelector(".check");
+    check.addEventListener('click', function (e){
+        if(check.checked){
+            const addr = [[${user.addr}]];
+            document.querySelector('.subName').value = document.querySelector('.userName').value;
+            document.querySelector('.subPhone').value = document.querySelector('.userPhone').value;
+            document.querySelector('.zipcode').value = `${addr.split("/")[0]}`;
+            document.querySelector('.addr1').value = `${addr.split("/")[1]}`;
+            document.querySelector('.addr2').value = `${addr.split("/")[2]}`;
+        }
+        else{
+            document.querySelector('.subName').value = ``;
+            document.querySelector('.subPhone').value = ``;
+            document.querySelector('.zipcode').value = ``;
+            document.querySelector('.addr1').value = ``;
+            document.querySelector('.addr2').value = ``;
+        }
+    })
+
+
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function (data) {
+                // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+                // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+                // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+                var fullAddr = ''; // 최종 주소 변수
+                var extraAddr = ''; // 조합형 주소 변수
+
+                // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                    fullAddr = data.roadAddress;
+                } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                    fullAddr = data.jibunAddress;
+                }
+
+                // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+                if (data.userSelectedType === 'R') {
+                    //법정동명이 있을 경우 추가한다.
+                    if (data.bname !== '') {
+                        extraAddr += data.bname;
+                    }
+                    // 건물명이 있을 경우 추가한다.
+                    if (data.buildingName !== '') {
+                        extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                    // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                    fullAddr += (extraAddr !== '' ? ' (' + extraAddr + ')' : '');
+                }
+
+                // 우편번호와 주소 정보를 해당 필드에 넣는다.
+                document.querySelector('input[name=zipcode]').value = data.zonecode; //5자리 새우편번호 사용
+                document.querySelector('input[name=addr1]').value = fullAddr;
+
+                // 커서를 상세주소 필드로 이동한다.
+                document.querySelector('input[name=addr2]').focus();
+            }
+        }).open();
+    }
+
+</script>
+</html>

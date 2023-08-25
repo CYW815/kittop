@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>kittop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+          crossorigin="anonymous">
+    <link href="/css/common.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/cart.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<!-- header 영역 -->
+<div class="container" id="header" th:fragment="header" th:if="${#authentication}"
+     th:with="currentUser=${#authentication.principal}">
+    <header class="blog-header py-3">
+        <div class="row flex-nowrap justify-content-between align-items-center">
+            <div class="col-4 pt-1 justify-content-evenly align-items-center">
+                <!-- sec:authorize="isAuthenticated()"
+                        로그인한 상태이면 마이페이지 메뉴를 보여주도록 설정-->
+                <span><a class="link-secondary text-decoration-none" th:href="@{/kittop/board/list}">Q&A</a></span>
+                <span><a class="link-secondary text-decoration-none" th:href="@{/kittop/review/list}">Review</a></span>
+                <!-- sec:authorize="hasAnyAuthority('ADMIN')"
+                         관리자계정(ADMIN ROLE)으로 로그인한 경우 보이도록 설정-->
+                <a class="link-secondary text-decoration-none" th:href="@{/kittop/admin}"
+                   sec:authorize="hasAnyAuthority('ROLE_ADMIN')">Admin</a>
+            </div>
+            <div class="col-4 text-center">
+                <a class="p-2 link-dark navbar-brand d-inline-block" href="/"
+                   style="font-weight: bold; font-size: 30px">
+                    KITTOP
+                </a>
+            </div>
+            <div class="col-4 d-flex justify-content-end align-items-center w-30">
+                <form class="d-flex w-30" role="search" th:action="@{/kittop}">
+                    <input class="form-control me-4" type="search" name="keyword" th:value="${pageRequestDTO.keyword}"
+                           placeholder="검색" aria-label="Search">
+                    <input type="hidden" name="size" th:value="${pageRequestDTO.size}">
+                    <input type="hidden" name="category" th:value="${pageRequestDTO.category}">
+                    <input type="hidden" name="types" th:if="${pageRequestDTO.types != null}"
+                           th:value="${pageRequestDTO.types}" th:attr="value=${{pageRequestDTO.types}}">
+                    <button class="btn btn-outline-light" type="submit">
+                        <img th:src="|@{/images/search.png}|" width="20px" height="20px">
+                    </button>
+                </form>
+                <!-- sec:authorize="isAnonymous()"
+                        로그인하지 않은 상태이면 로그인 메뉴를 보여주도록 설정-->
+                <a class="link-secondary justify-content-end w-25 text-center text-decoration-none"
+                   th:href="@{/kittop/login}" sec:authorize="isAnonymous()">Sign up</a>
+                <!-- sec:authorize="isAuthenticated()"
+                        로그인한 상태이면 프로필 메뉴를 보여주도록 설정-->
+                <div class="flex-shrink-0 dropdown justify-content-end text-center col-1"
+                     sec:authorize="isAuthenticated()">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser2"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <img th:src="|@{/images/login.png}|" alt="mdo" width="20px" height="20px"
+                             class="rounded-circle">
+                    </a>
+                    <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+                        <li><a class="dropdown-item" th:href="@{/kittop/user/info(userId=${currentUser.userId})}"
+                               sec:authorize="isAuthenticated()">MyPage</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" th:href="@{/kittop/logout}">Sign out</a></li>
+                    </ul>
+                </div>
+                <!-- 회원일 경우에만 카트 보임 -->
+                <div class="col-4 d-flex justify-content-sm-end align-items-center w-15"
+                     sec:authorize="isAuthenticated()">
+                    <a class="btn btn-outline-dark" th:href="@{/kittop/cart/list}" role="button">
+                        <i class="bi-cart-fill me-1"></i>
+                        Cart
+                        <span class="badge bg-dark text-white ms-1 rounded-pill" th:if="${session.cartCount != null}"
+                              th:text="${session.cartCount}"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+</div>
+<div>
+    <div class="bg-dark py-3">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">KIT-TOP</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Kitsch & Unique selected T-shirt shop</p>
+            </div>
+        </div>
+    </div>
+    <div class="nav-scroller py-1 mb-2" id="categoryWrap">
+        <nav class="nav d-flex justify-content-center">
+            <a class="p-2 link-dark active" id="category1" href="/kittop?category=반팔셔츠">반팔 셔츠</a>
+            <a class="p-2 link-dark active" id="category2" href="/kittop?category=긴팔셔츠">긴팔 셔츠</a>
+        </nav>
+    </div>
+    <!-- Section-->
+    <div class="py-5">
+        <div class="container px-3 px-lg-4 mt-6">
+            <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center itemList">
+                <input type="hidden" class="userId" th:value="${userId}">
+                <div th:if="${(pageRequestDTO.keyword != null && pageRequestDTO.keyword.length() != 0) || (pageRequestDTO.category != null && pageRequestDTO.category.length() != 0)}"
+                     th:each="item : ${pageResponseDTO.dtoList}" class="col mb-5">
+                    <div class="card h-80">
+                        <a th:href="|@{/kittop/item/info(itemId = ${item.itemId})}|">
+                            <img class="card-img-top card-img-top-fit" th:src="|@{/images/}${item.imgName}|">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Pagination -->
+    <div class="float-end">
+        <ul class="pagination flex-wrap">
+            <th:block
+                    th:if="${(pageRequestDTO.keyword != null && pageRequestDTO.keyword.length() != 0) || (pageRequestDTO.category != null && pageRequestDTO.category.length() != 0)}">
+                <div th:if="${pageResponseDTO.total > 0}">
+                    <li class="page-item" th:if="${pageResponseDTO.prev}">
+                        <a class="page-link" th:data-num="${pageResponseDTO.start - 1}">이전</a>
+                    </li>
+                </div>
+                <!--#numbers.sequence : 특정한 범위의 연속된 숫자를 만듦-->
+                <th:block th:each="i: ${#numbers.sequence(pageResponseDTO.start , pageResponseDTO.end)}">
+                    <li th:if="${i != 0}" th:class="${pageResponseDTO.page == i} ? 'page-item' : 'page-item'">
+                        <a class="page-link"
+                           th:style="${pageResponseDTO.page == i} ? 'background-color: darkgrey; color: white;' : 'color: black'"
+                           th:data-num="${i}">[[${i}]]</a>
+                        <!--data-num이라는 속성으로 페이지 처리-->
+                    </li>
+                </th:block>
+                <li class="page-item" th:if="${pageResponseDTO.next}">
+                    <a class="page-link" th:data-num="${pageResponseDTO.end + 1}">다음</a>
+                </li>
+            </th:block>
+        </ul>
+    </div>
+</div>
+<br>
+<br>
+<!-- Footer-->
+<footer class="py-5 bg-dark">
+    <div class="container"><p class="m-0 text-center text-white">Copyright &copy; KITTOP 2023</p></div>
+</footer>
+<!-- 구글 계정 최초 로그인 모달창 -->
+<div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalLabel">알림</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- 메시지 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark confirm-button">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 구글 계정 최초 로그인 모달창 끝-->
+<script th:inline="javascript">
+    const keyword = [[${pageRequestDTO.keyword}]]
+    const category = [[${pageRequestDTO.category}]]
+    document.querySelector(".pagination").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const target = e.target;
+
+        if (target.tagName !== 'A') {
+            return;
+        }
+
+        const num = target.getAttribute("data-num");
+        const formObj = document.querySelector("form");
+
+        formObj.innerHTML += `<input type='hidden' name='page' value='${num}'>`;
+        formObj.submit();
+    }, false)
+
+    /* 구글 계정 모달창 */
+    const googleUserMsg = [[${googleUserMsg}]]; // 서버에서 받은 메시지
+    const userId = document.querySelector('.userId').value;
+
+    const modal = new bootstrap.Modal(document.querySelector(".modal"));
+    if (googleUserMsg) {
+        // 모달창에 메시지 설정
+        document.querySelector('.modal-body').innerText = googleUserMsg;
+
+        // 모달창에 이벤트 설정: 확인 버튼을 누르면 회원 수정 페이지로 이동
+        document.querySelector('.confirm-button').addEventListener("click", function () {
+            window.location.href = '/kittop/user/modify';
+        });
+        // 모달창 표시
+        modal.show();
+    }
+    /* 구글 계정 모달창 */
+
+    if ((keyword == null || keyword.length == 0) && (category == null || category.length == 0)) {
+        let num = 1;
+        let str = ``;
+        const itemList = document.querySelector(".itemList");
+        if (str == ``) {
+            str = itemList.innerHTML;
+            loadPage(num).then(result => {
+                    for (r of result.data) {
+                        str = str + `<div class="col mb-5">
+                    <div class="card h-80 w-120">
+                           <a href="/kittop/item/info?itemId=${r.itemId}">
+                           <img class="card-img-top card-img-top-fit" src="/images/${r.imgName}">
+                           </a>
+                    </div>
+                </div>`
+                    }
+                    itemList.innerHTML = str;
+                }
+            );
+        }
+        let end = true;
+        let delay = true;
+        window.addEventListener("scroll", function (e) {
+            let scrollTop = window.scrollY;
+            let innerHeight = window.innerHeight;
+            let scrollHeight = document.body.scrollHeight;
+            if (scrollTop + innerHeight >= scrollHeight - 50 && end) {
+                if (delay) {
+                    delay = false;
+                    num++
+                    loadPage(num).then(result => {
+                        end = result.data.length !== 0;
+                        for (r of result.data) {
+                            str = str + `<div class="col mb-5">
+                                    <div class="card h-80">
+                                           <a href="/kittop/item/info?itemId=${r.itemId}">
+                                           <img class="card-img-top card-img-top-fit" src="/images/${r.imgName}">
+                                           </a>
+                                    </div>
+                                </div>`
+                        }
+                        itemList.innerHTML = str;
+                    })
+                }
+                setTimeout(function () {
+                    delay = true;
+                }, 100)
+            }
+        })
+    }
+
+</script>
+
+</html>

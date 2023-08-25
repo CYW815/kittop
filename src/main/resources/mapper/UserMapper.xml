@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.UserMapper">
+
+    <insert id="saveUser">
+        insert into user (`email`, `password`, `nickName`, `name`, `birth`, `gender`, `addr`, `phone`, `provider`, `providerId`, `role`)
+        values (#{email}, #{password}, #{nickName}, #{name}, #{birth}, #{gender}, #{addr}, #{phone}, #{provider}, #{providerId}, #{role})
+    </insert>
+
+    <delete id="deleteUser">
+        delete from user where userId = #{userId}
+    </delete>
+
+    <select id="findUserByUserId" resultType="com.kittop.domain.UserVO">
+        select * from user where `userId` = #{userId}
+    </select>
+
+    <update id="updateUser">
+        update user set `password` = #{password}, `nickName` = #{nickName}, `name` = #{name}, `birth` = #{birth}, `gender` = #{gender}, `addr` = #{addr}, `phone` = #{phone}, `updateDate` = now(), `role` = #{role}
+        where userId = #{userId}
+    </update>
+
+    <select id="findUserByEmail" resultType="com.kittop.domain.UserVO">
+        select * from user where `email` = #{email}
+    </select>
+
+    <select id="findUserByNickName" resultType="com.kittop.domain.UserVO">
+        select * from user where `nickName` = #{nickName}
+    </select>
+
+    <select id="findUserList" resultType="com.kittop.domain.UserVO">
+        select * from user
+        <include refid="search"/>
+        order by userId desc limit #{start}, #{size}
+    </select>
+
+    <select id="findUserCount" resultType="int">
+        select count(*) from user
+        <include refid="search"/>
+    </select>
+
+    <update id="updateUuid">
+        update user set `uuid` = #{uuid} where `userId` = #{userId}
+    </update>
+
+    <select id="findUserByUuid" resultType="com.kittop.domain.UserVO">
+        select * from user where `uuid` = #{uuid}
+    </select>
+
+    <sql id="search">
+        <where>
+            <if test="types != null and types.length > 0">
+                <foreach collection="types" item="type" open="(" close=")" separator=" OR">
+                    <if test="type == 'e'.toString()">
+                        email like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'i'.toString()">
+                        nickName like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'n'.toString()">
+                        `name` like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'in'.toString()">
+                        nickName like concat('%', #{keyword}, '%')
+                        or
+                        `name` like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'ein'.toString()">
+                        email like concat('%', #{keyword}, '%')
+                        or
+                        nickName like concat('%', #{keyword}, '%')
+                        or
+                        `name` like concat('%', #{keyword}, '%')
+                    </if>
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+</mapper>

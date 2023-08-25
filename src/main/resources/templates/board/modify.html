@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>QnA Board Modify</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="row mt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Q&A 게시판 수정
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/kittop/board/modify}" method="post" id="f1">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">게시판번호</span>
+                            <input type="text" class="form-control" name="boardId" th:value="${dto.boardId}" readonly>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">제목</span>
+                            <input type="text" class="form-control" name="title" th:value="${dto.title}">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">내용</span>
+                            <textarea class="form-control com-sm-5" rows="5"
+                                      name="content">[[${dto.content}]]</textarea>
+                        </div>
+
+
+                        <input type="hidden" name="category" class="form-control" value="Q">
+                        <div class="my-4">
+                            <div class="float-end">
+
+                                <button type="button" class="btn btn-primary listBtn">목록</button>
+                                <button  type="button" class="btn btn-secondary modBtn">수정</button>
+                                <button  type="button" class="btn btn-danger removeBtn">삭제</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+    const errors = [[${errors}]]
+
+    let errorMsg = ''
+
+    if (errors) {
+        for (let i = 0; i < errors.length; i++) {
+            errorMsg += `${errors[i].field}은(는) ${errors[i].code} \n`;
+        }
+        history.replaceState({}, null, null);
+        alert(errorMsg);
+    }
+
+    const link = [[${pageRequestDTO.getLink()}]];
+    const formObj = document.querySelector("#f1");
+
+    document.querySelector(".modBtn").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // alert("게시글이 수정되었습니다!");
+        formObj.action = `/kittop/board/modify?${link}`;
+        formObj.method = 'post';
+        formObj.submit();
+    }, false);
+
+    document.querySelector(".removeBtn").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // alert("게시글을 삭제하였습니다!");
+        formObj.action = `/kittop/board/delete?${link}`;
+        formObj.method = 'post';
+        formObj.submit();
+    }, false);
+
+    document.querySelector(".listBtn").addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        formObj.reset();
+        self.location = `/kittop/board/list?${link}`;
+    }, false);
+</script>
+
+</body>
+</html>

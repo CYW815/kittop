@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 페이지</title>
+
+  <!-- 사용자 css 추가 -->
+  <th:block layout:fragment="css">
+    <style>
+      .form-custom-width {
+        width: 300px;
+      }
+    </style>
+  </th:block>
+</head>
+<body>
+  <div layout:fragment="content">
+    <div class="bg-light d-flex align-items-center justify-content-center" style="min-height: 85vh;">
+      <div class="form-signin form-custom-width">
+        <form action="/kittop/login" method="post">
+          <div class="text-center">
+            <h1 class="h3 mb-3 fw-normal">Login</h1>
+          </div>
+          <div class="col-md-12 col-lg-12">
+            <div class="row-sm-12">
+              <label th:for="email" class="form-label">아이디(이메일)</label>
+              <input type="email" class="form-control" name="email" id="email" placeholder="이메일을 입력해주세요" value="" required>
+              <p th:if="${!#strings.isEmpty(errorMsg)}" th:text="${errorMsg}" class="text-danger"></p>
+            </div>
+            <div class="row-sm-12">
+              <label th:for="password" class="form-label">비밀번호</label>
+              <input type="password" class="form-control" name="password" id="password" placeholder="비밀번호를 입력해주세요" value="" required>
+            </div>
+
+            <div class="checkbox mb-3">
+              <label>
+                <input type="checkbox" value="remember-me"> 아이디 저장
+              </label>
+            </div>
+            <button class="w-100 btn btn-lg btn-dark" type="submit">로그인</button>
+          </div>
+        </form>
+
+        <a class="w-100 btn btn-lg" th:href="@{/oauth2/authorization/google}">
+          <img src="/images/btn_google_signin_dark_focus_web.png" alt="구글로그인" />
+        </a>
+        <br>
+        <a class="w-100 btn btn-lg btn-secondary" th:href="@{/kittop/register}">회원가입</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

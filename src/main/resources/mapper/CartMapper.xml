@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.CartMapper">
+
+    <insert id="saveCart">
+        insert into cart (userEmail, itemId) values (#{userEmail}, #{itemId})
+    </insert>
+
+    <delete id="deleteCartByUserEmail">
+        delete from cart where userEmail = #{userEmail} and itemId = #{itemId}
+    </delete>
+
+    <delete id="deleteCart">
+        delete from cart where cartId = #{cartId}
+    </delete>
+
+    <select id="findCartByUserEmail" resultType="com.kittop.domain.CartVO">
+        select cartId, userEmail, itemId from cart where userEmail = #{userEmail}
+    </select>
+
+    <select id="findCartCountByUserEmail" resultType="int">
+        select count(cartId) from cart where userEmail = #{userEmail}
+    </select>
+
+</mapper>

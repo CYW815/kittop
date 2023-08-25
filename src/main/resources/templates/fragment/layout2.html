@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Hugo 0.88.1">
+  <title>Blog Template · Bootstrap v5.1</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+        rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+        crossorigin="anonymous">
+
+
+  <style>
+
+    a { text-decoration: none }
+
+    .navbar-brand {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+
+</head>
+<body>
+
+<div class="container">
+  <header class="blog-header py-3">
+    <div class="row flex-nowrap justify-content-between align-items-center">
+      <div class="col-4 pt-1 justify-content-evenly align-items-center">
+        <a class="link-secondary" href="#">Q&A</a>
+        <a class="link-secondary" href="#">Review</a>
+        <a class="link-secondary" href="#">Admin</a>
+      </div>
+      <div class="col-4 text-center">
+        <a class="p-2 link-dark navbar-brand" href="@{/}">KITTOP</a>
+      </div>
+      <div class="col-4 d-flex justify-content-end align-items-center">
+        <form class="d-flex w-50" role="search">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-dark" type="submit">Search</button>
+        </form>
+        <a class="link-secondary w-25 text-center" href="#">Sign up</a>
+        <div class="d-flex w-25">
+          <a class="btn btn-outline-dark" href="@{/kittop/cart/list}" role="button">
+            <i class="bi-cart-fill me-1"></i>
+            Cart
+            <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
+          </a>
+        </div>
+      </div>
+      <!-- 회원일 경우에만 카트 보임 -->
+
+    </div>
+  </header>
+
+  <div class="bg-dark py-3">
+    <div class="container px-4 px-lg-5 my-5">
+      <div class="text-center text-white">
+        <h1 class="display-4 fw-bolder">KIT-TOP</h1>
+        <p class="lead fw-normal text-white-50 mb-0">Kitsch & Unique selected T-shirt shop</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-scroller py-1 mb-2">
+    <nav class="nav d-flex justify-content-center">
+      <a class="p-2 link-secondary" href="#" >긴팔 셔츠</a>
+      <a class="p-2 link-secondary" href="#" >반팔 셔츠</a>
+    </nav>
+  </div>
+
+</div>
+
+
+</body>
+</html>

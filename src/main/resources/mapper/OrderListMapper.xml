@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kittop.mapper.OrderListMapper">
+
+    <insert id="saveOrderList">
+        insert into orderlist (itemId, count, userEmail, status, totalPrice, addr, request, orderer, receiver, ordererPhone, receiverPhone, payment, tossOrderId, tossMethod, tossBank)
+        values (#{itemId}, #{count}, #{userEmail}, #{status}, #{totalPrice}, #{addr}, #{request}, #{orderer}, #{receiver}, #{ordererPhone}, #{receiverPhone}, #{payment}, #{tossOrderId}, #{tossMethod}, #{tossBank})
+    </insert>
+
+    <update id="updateOrderList">
+        update orderlist set status = #{status}, boardId = #{boardId} where orderId = #{orderId}
+    </update>
+
+    <update id="updateOrderListByDate">
+        update orderlist set status = '구매확정' where status = '배송완료' OR status = '교환거부' OR status = '환불거부' AND TIMESTAMPDIFF(DAY, regDate, now()) >= 8;
+    </update>
+
+    <update id="updateOrderListByOrderId">
+        update orderlist set reviewId = #{reviewId} where orderId = #{orderId}
+    </update>
+
+
+    <select id="findOrderListByUserEmailPageRequestDTO" resultType="com.kittop.domain.OrderListVO">
+        select orderId, count, regDate, totalPrice, itemId, status, addr, request, orderer, receiver, ordererPhone, receiverPhone, payment, tossOrderId, reviewId, boardId
+        from orderlist
+        <include refid="search"/>
+        order by orderId desc limit #{start}, #{size}
+    </select>
+
+    <select id="findOrderListByPageRequestDTO" resultType="com.kittop.domain.OrderListVO">
+        select orderId, count, regDate, totalPrice, itemId, status, addr, request, orderer, receiver, ordererPhone, receiverPhone, payment, tossOrderId, tossMethod, tossBank, reviewId, boardId
+        from orderlist
+        <include refid="search"/>
+        order by orderId desc limit #{start}, #{size}
+    </select>
+
+    <select id="findOrderListCountByUserEmailPageRequestDTO" resultType="int">
+        select count(orderId) from orderlist
+        <include refid="search"/>
+    </select>
+
+    <select id="findOrderListCountByPageRequestDTO" resultType="int">
+        select count(orderId) from orderlist
+        <include refid="search"/>
+    </select>
+
+    <select id="findOrderListCountByStatusPageRequestDTO" resultType="int">
+        select count(orderId) from orderlist
+        where status = #{status}
+    </select>
+
+    <select id="findOrderListByOrderId" resultType="com.kittop.domain.OrderListVO">
+        select orderId, count, regDate, totalPrice, itemId, status, addr, request, orderer, receiver, ordererPhone, receiverPhone, payment, tossOrderId, userEmail ,tossMethod, tossBank, reviewId, boardId
+        from orderlist
+        where orderId = #{orderId}
+    </select>
+
+    <select id="findOrderListByPeriod" resultType="com.kittop.domain.OrderListVO">
+        select orderId, count, regDate, totalPrice, itemId, status, addr, request, orderer, receiver, ordererPhone, receiverPhone, payment, tossOrderId, userEmail, tossMethod, tossBank
+        from orderlist
+        where regDate BETWEEN #{from} AND #{to} order by orderId desc
+    </select>
+
+    <select id="findOrderListCountByPeriod" resultType="int">
+        select count(orderId)
+        from orderlist
+        where regDate BETWEEN #{from} AND #{to} order by orderId desc
+    </select>
+
+    <delete id="deleteOrderListByOrderId">
+        delete from orderlist where orderId = #{orderId}
+    </delete>
+
+    <select id="statusCount" resultType="int">
+        select count(orderId) from orderlist
+        <include refid="count"/>
+    </select>
+
+    <select id="statusTotal" resultType="string">
+        select sum(totalPrice) from orderlist
+        <include refid="count"/>
+    </select>
+
+    <sql id="search">
+        <where>
+            <!--            <if test="keyword != null and keyword.length() > 0">-->
+            <!--                status = #{keyword}-->
+            <!--            </if>-->
+            <if test="userEmail != null and userEmail.length > 0">
+                userEmail = #{userEmail}
+            </if>
+            <if test="types != null and types.length > 0">
+                and
+                <foreach collection="types" item="type" open="(" close=")" separator=" OR">
+                    <if test="type == 'o'.toString()">
+                        orderer like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'r'.toString()">
+                        receiver like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'op'.toString()">
+                        ordererPhone like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'rp'.toString()">
+                        receiverPhone like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 'on'.toString()">
+                        tossOrderId like concat('%', #{keyword}, '%')
+                    </if>
+                    <if test="type == 's'.toString()">
+                        status like concat('%', #{keyword}, '%')
+                    </if>
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="count">
+        <where>
+            <if test="status != null and status.length() > 0">
+                status = #{status}
+            </if>
+        </where>
+    </sql>
+</mapper>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>장바구니</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sidebars/">
+    <link href="/css/sidebars.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/js/payCart.js"></script>
+    <script src="/js/cart.js"></script>
+
+    <!-- 사용자 css 추가 -->
+    <th:block layout:fragment="css">
+        <style>
+
+            .cartPayBtn {
+                text-decoration: none;
+                color: #fff;
+            }
+            .cartPayBtn:hover {
+                font-weight: bold;
+                color: #000;
+            }
+        </style>
+    </th:block>
+</head>
+<div layout:fragment="content">
+    <div class="container-fluid vw-100">
+        <div class="row">
+            <div class="flex-shrink-0 p-3 bg-white col-md-1" style="width: 280px;" th:if="${#authentication}" th:with="currentUser=${#authentication.principal}">
+                <a th:href="@{/kittop/user/info(userId=${currentUser.userId})}" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                    <svg class="bi me-2" width="30" height="24"><use xlink:href="#bootstrap"/></svg>
+                    <span class="fs-5 fw-semibold">마이페이지</span>
+                </a>
+                <ul class="list-unstyled ps-0">
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
+                            정보관리
+                        </button>
+                        <div class="collapse show" id="home-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li th:if="${#authentication}" th:with="currentUser=${#authentication.principal}">
+                                    <a th:href="@{/kittop/user/modify(userId=${currentUser.userId})}" class="link-dark rounded">정보수정</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-expanded="false">
+                            주문내역
+                        </button>
+                        <div class="collapse" id="dashboard-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/cart/list}" class="link-dark rounded">장바구니</a></li>
+                                <li><a th:href="@{/kittop/order/list}" class="link-dark rounded">주문내역</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="mb-1">
+                        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="false">
+                            게시판
+                        </button>
+                        <div class="collapse" id="orders-collapse">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                <li><a th:href="@{/kittop/board/list}" class="link-dark rounded">Q/A</a></li>
+                                <li><a th:href="@{/kittop/review/list}" class="link-dark rounded">리뷰</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="border-top my-3"></li>
+                </ul>
+            </div>
+            <div class="col-md-5"> <!-- 50% of the container width -->
+                <div class="container-table">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col" class="px-lg-4">
+                            </th>
+                            <th scope="col" class="px-lg-4">상품정보</th>
+                            <th scope="col" class="px-lg-3">가격</th>
+                            <th scope="col" class="px-lg-3">수량</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="cart : ${cartList}" class="cartItem">
+                            <th scope="row" class="px-lg-4">
+                                <input type="checkbox" name="check" class="check" th:disabled="${cart.item.stock == 0 ? 'true' : 'false'}" th:value="${cart.item.itemId}">
+                                <img class="" th:src="|@{/images/}${cart.item.imgName}|" width="70px" height="70px">
+                            </th>
+                            <td th:text="${cart.item.itemName}" class="px-lg-4"></td>
+                            <td th:text="${cart.item.price + '원'}" class="px-lg-3"></td>
+                            <td><input type="number" name="count" th:class="${cart.item.itemId + ' ' + 'number'}" value="1" style="width: 50px"></td>
+                            <td><button type="button" th:data-num="${cart.cartId}" class="removeCartBtn">X</button></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-4" id="cartPay">
+                <div class="container-card d-flex align-items-center justify-content-center" style="height: 100vh;">
+                    <div class="row align-items-md-stretch">
+                        <div class="col-md-12">
+                            <div class="h-100 p-5 text-white bg-dark rounded-3">
+                                <h3>장바구니 항목</h3>
+                                <hr style="border: 1px solid #fff">
+                                <div class="cartList">
+
+                                </div>
+                                <hr style="border: 1px solid #fff">
+                                <div class="col-md-10">
+                                    <span class="totalPrice"></span>
+                                </div>
+                                <hr style="border: 1px solid #fff">
+                                <br>
+                                <div class="d-flex">
+                                    <button class="btn btn-outline-light flex-shrink-0 me-3 w-100 cartPayBtn">
+                                        <i class="bi-cart-fill me-1"></i>
+                                        결제
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script layout:fragment="script" th:inline="javascript">
+
+    cartList()
+
+    document.querySelector(".cartPayBtn").addEventListener('click', function (e) {
+        if(document.querySelector(".cartList").innerHTML.length === 0){
+            alert("상품을 선택해주세요.")
+            return;
+        }
+        e.stopPropagation();
+        e.preventDefault();
+        location.href = `/kittop/order/pay`
+    })
+
+    let total = 0;
+    document.querySelectorAll(".price").forEach(c => {
+        total = total + parseInt(c.innerText);
+    })
+    document.querySelector('.totalPrice').innerText = `총 금액 : ${total}원`;
+
+    const checks = document.querySelectorAll('.check');
+    const changCount = document.querySelectorAll('.number');
+    checks.forEach(c => {
+        c.addEventListener('click', function (e) {
+            if(this.checked == true){
+                let c = this.closest('tr').querySelector(".number").value;
+                const itemObj = {itemId:this.value, count:c}
+                payCart(itemObj).then(result => {
+                    cartList()
+                })
+            }
+            else{
+                const rno = this.value;
+                delPayCart(rno).then(result => {
+                    cartList()
+                })
+
+            }
+        });
+    })
+    changCount.forEach(c => {
+        c.addEventListener('click', function (e) {
+            numberCheck()
+            numberKey(this)
+        })
+        c.addEventListener("keyup", function (e) {
+            numberCheck()
+            numberKey(this)
+        })
+    })
+
+    function numberKey(k) {
+        let c = k.closest('tr').querySelector('.check');
+        if(c.checked == true){
+            const itemObj = {itemId:c.value, count:k.value}
+            payCart(itemObj).then(result => {
+                cartList()
+            })
+        }
+    }
+
+    const removeCartBtn = document.querySelectorAll('.removeCartBtn');
+    removeCartBtn.forEach(c => {
+        c.addEventListener('click', function (e) {
+            const num = e.target.getAttribute('data-num');
+            delCart(num).then(result => {
+                cartList()
+                self.location = `/kittop/cart/list`;
+            });
+
+        })
+    })
+
+    function cartList() {
+        listCart().then(result => {
+            let str = "";
+            let totalPrice = 0;
+            for (r of result.cartList){
+                totalPrice += r.price * r.count;
+                 str += `<div><span>${r.itemName}</span>
+                            <span>${r.count}개</span>
+                            <span class="price"> ${r.price * r.count}원</span></div>`
+                document.querySelectorAll(".check").forEach(c => {
+                    if(Number(c.value) === Number(r.itemId)){
+                        c.checked = true;
+                    }
+                    document.querySelectorAll(".number").forEach(n => {
+                        if(n.getAttribute('class').indexOf(r.itemId) !== - 1){
+                            n.value = r.count;
+                        }
+                    })
+                })
+            }
+            document.querySelector(".cartList").innerHTML = str;
+            document.querySelector(".totalPrice").innerText = `총 금액 : ${totalPrice}원`;
+
+            if (result.cartList == null) {
+                document.querySelectorAll('.cartItem').innerHTML = ``;
+            }
+        })
+    }
+
+    function numberCheck() {
+        document.querySelectorAll(".number").forEach(c => {
+            if(Number(c.value) <= 1) {
+                c.value = '1';
+            }
+            else if (Number(c.value) >= 9) {
+                c.value = '9';
+            }
+        })
+    }
+
+</script>
+</html>

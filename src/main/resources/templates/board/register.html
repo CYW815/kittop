@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout.html}">
+<head>
+  <meta charset="UTF-8">
+  <title>QnA Board Register</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+  <div class="row mt-3">
+    <div class="col">
+      <div class="card">
+        <form method="post">
+        <div class="card-header">
+            Q&A 게시판 등록
+          </div>
+
+
+        <div class="card-body">
+
+
+            <div class="input-group mb-3">
+              <span class="input-group-text">제목</span>
+              <input type="text" name="title" class="form-control" placeholder="Title">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">내용</span>
+              <textarea class="form-control com-sm-5" rows="5" name="content"></textarea>
+            </div>
+
+          <input type="hidden" name="category" class="form-control" value="Q">
+
+
+            <div class="my-4">
+              <div class="float-end">
+                <button type="submit" class="btn btn-primary">등록</button>
+                <button type="reset" class="btn btn-secondary">초기화</button>
+              </div>
+            </div>
+
+        </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script layout:fragment="script" th:inline="javascript">
+  const errors = [[${errors}]]
+
+  let errorMsg = '';
+  if (errors) {
+    for (let i = 0; i < errors.length; i++) {
+      errorMsg += `${errors[i].field}은(는) ${errors[i].code} \n`;
+    }
+    alert(errorMsg);
+  }
+</script>
+
+</body>
+</html>
